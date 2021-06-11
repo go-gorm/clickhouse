@@ -9,29 +9,39 @@ Clickhouse support for GORM
 You can simply test your connection to your database with the following:
 
 ```go
+package main
 import (
   "gorm.io/driver/clickhouse"
   "gorm.io/gorm"
 )
+type User struct {
+    Name  string
+    Age   int
+}
 
 func main() {
   dsn := "tcp://localhost:9000?database=gorm&username=gorm&password=gorm&read_timeout=10&write_timeout=20"
   db, err := gorm.Open(clickhouse.Open(dsn), &gorm.Config{})
-
+  if err != nil {
+    panic("failed to connect database")
+    }
   // Auto Migrate
   db.AutoMigrate(&User{})
   // Set table options
   db.Set("gorm:table_options", "ENGINE=Distributed(cluster, default, hits)").AutoMigrate(&User{})
 
   // Insert
-  db.Create(&user)
+  db.Create(&User{Name: "Angeliz",Age: 18})
 
   // Select
-  db.Find(&user, "id = ?", 10)
+  db.Find(&User{}, "name = ?", "Angeliz")
 
   // Batch Insert
-  var users = []User{user1, user2, user3}
-  db.Create(&users)
+user1 := User{Age: 12,Name: "Bruce Lee"}
+user2 := User{Age: 13,Name: "Feynman"}
+user3 := User{Age: 14,Name: "Angeliz"}
+var users = []User{user1, user2, user3}
+db.Create(&users)
   // ...
 }
 ```
