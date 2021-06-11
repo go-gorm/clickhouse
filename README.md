@@ -52,6 +52,8 @@ func main() {
 ## Advanced Configuration
 
 ```go
+package main
+
 import (
   "gorm.io/driver/clickhouse"
   "gorm.io/gorm"
