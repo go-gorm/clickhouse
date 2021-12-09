@@ -55,6 +55,11 @@ func (m Migrator) FullDataTypeOf(field *schema.Field) (expr clause.Expr) {
 		expr.SQL += " COMMENT " + m.Dialector.Explain("?", comment)
 	}
 
+	// Build TTl clause optionally after COMMENT
+	if ttl, ok := field.TagSettings["TTL"]; ok && ttl != "" {
+		expr.SQL += " TTL " + ttl
+	}
+
 	// Build CODEC compression algorithm optionally
 	// NOTE: the codec algo name is case sensitive!
 	if codecstr, ok := field.TagSettings["CODEC"]; ok && codecstr != "" {
