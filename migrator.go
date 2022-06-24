@@ -1,6 +1,7 @@
 package clickhouse
 
 import (
+	"bufio"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -407,6 +408,38 @@ func (m Migrator) DropIndex(value interface{}, name string) error {
 	})
 }
 
+func (m Migrator) HasIndex(value interface{}, name string) bool {
+	var count int
+	m.RunWithValue(value, func(stmt *gorm.Statement) error {
+		currentDatabase := m.DB.Migrator().CurrentDatabase()
+
+		if idx := stmt.Schema.LookIndex(name); idx != nil {
+			name = idx.Name
+		}
+
+		showCreateTableSQL := fmt.Sprintf("SHOW CREATE TABLE %s.%s", currentDatabase, stmt.Table)
+		var createStmt string
+		if err := m.DB.Raw(showCreateTableSQL).Row().Scan(&createStmt); err != nil {
+			return err
+		}
+
+		indexNames := m.extractIndexNamesFromCreateStmt(createStmt)
+
+		// fmt.Printf("==== DEBUG ==== m.Mirror.HasIndex(%v, %v) count = %v, stmt: [\n%v\n]\nnames: %v\n",
+		// 	stmt.Table, name, count, createStmt, indexNames)
+
+		for _, indexName := range indexNames {
+			if indexName == name {
+				count = 1
+				break
+			}
+		}
+		return nil
+	})
+
+	return count > 0
+}
+
 // Helper
 
 // Index
@@ -437,4 +470,52 @@ func (m Migrator) getIndexGranularityOption(opts []schema.IndexOption) int {
 		}
 	}
 	return m.Dialector.DefaultGranularity
+}
+
+/*
+sample input:
+
+CREATE TABLE my_database.my_foo_bar
+(
+    `id` UInt64,
+    `created_at` DateTime64(3),
+    `updated_at` DateTime64(3),
+    `deleted_at` DateTime64(3),
+    `foo` String,
+    `bar` String,
+    INDEX idx_my_foo_bar_deleted_at deleted_at TYPE minmax GRANULARITY 3,
+    INDEX my_fb_foo_bar (foo, bar) TYPE minmax GRANULARITY 3
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(created_at)
+ORDER BY (foo, bar)
+SETTINGS index_granularity = 8192
+*/
+func (m Migrator) extractIndexNamesFromCreateStmt(createStmt string) []string {
+	var names []string
+	scanner := bufio.NewScanner(strings.NewReader(createStmt))
+	state := 0 // 0: before create body, 1: in create body, 2: after create body
+	for scanner.Scan() && state < 2 {
+		line := scanner.Text()
+		switch state {
+		case 0:
+			if strings.HasPrefix(line, "(") {
+				state = 1
+			}
+		case 1:
+			if strings.HasPrefix(line, ")") {
+				state = 2
+				continue
+			}
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "INDEX ") {
+				line = strings.TrimPrefix(line, "INDEX ")
+				elems := strings.Split(line, " ")
+				if len(elems) > 0 {
+					names = append(names, elems[0])
+				}
+			}
+		}
+	}
+	return names
 }
