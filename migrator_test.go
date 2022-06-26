@@ -78,3 +78,26 @@ func TestAutoMigrate(t *testing.T) {
 		}
 	}
 }
+
+func TestMigrator_HasIndex(t *testing.T) {
+	type UserWithIndex struct {
+		FirstName string    `gorm:"index:full_name"`
+		LastName  string    `gorm:"index:full_name"`
+		CreatedAt time.Time `gorm:"index"`
+	}
+	if DB.Migrator().HasIndex("users", "full_name") {
+		t.Fatalf("users's full_name index should not exists")
+	}
+
+	if err := DB.Table("users").AutoMigrate(&UserWithIndex{}); err != nil {
+		t.Fatalf("no error should happen when auto migrate")
+	}
+
+	if !DB.Migrator().HasIndex("users", "full_name") {
+		t.Fatalf("users's full_name index should exists after auto migrate")
+	}
+
+	if err := DB.Table("users").AutoMigrate(&UserWithIndex{}); err != nil {
+		t.Fatalf("no error should happen when auto migrate again")
+	}
+}
