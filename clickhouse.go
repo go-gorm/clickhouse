@@ -88,7 +88,7 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 	}
 
 	if !dialector.SkipInitializeWithVersion {
-		err = db.ConnPool.QueryRowContext(ctx, "SELECT version()").Scan(&dialector.Version)
+		err = db.ConnPool.QueryRowContext(ctx, "SELECT extract(version(), '([\d]+\.[\d]+\.[\d]+(\.[\d]+)?)'").Scan(&dialector.Version)
 		if err != nil {
 			return err
 		}
