@@ -22,7 +22,7 @@ type User struct {
 }
 
 func main() {
-	dsn := "clickhouse://gorm:gorm@localhost:9942/gorm?read_timeout=10s&write_timeout=20s"
+	dsn := "clickhouse://gorm:gorm@localhost:9942/gorm?dial_timeout=10s&read_timeout=20s"
 	db, err := gorm.Open(clickhouse.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
