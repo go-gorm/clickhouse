@@ -354,6 +354,10 @@ func (m Migrator) ColumnTypes(value interface{}) ([]gorm.ColumnType, error) {
 				column.DefaultValueValue.String = strings.Trim(column.DefaultValueValue.String, "'")
 			}
 
+			if m.Dialector.DontSupportEmptyDefaultValue && column.DefaultValueValue.String == "" {
+				column.DefaultValueValue.Valid = false
+			}
+
 			for _, c := range rawColumnTypes {
 				if c.Name() == column.NameValue.String {
 					column.SQLColumnType = c

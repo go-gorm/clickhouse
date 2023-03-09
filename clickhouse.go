@@ -18,17 +18,18 @@ import (
 )
 
 type Config struct {
-	DriverName                 string
-	DSN                        string
-	Conn                       gorm.ConnPool
-	DisableDatetimePrecision   bool
-	DontSupportRenameColumn    bool
-	DontSupportColumnPrecision bool
-	SkipInitializeWithVersion  bool
-	DefaultGranularity         int    // 1 granule = 8192 rows
-	DefaultCompression         string // default compression algorithm. LZ4 is lossless
-	DefaultIndexType           string // index stores extremes of the expression
-	DefaultTableEngineOpts     string
+	DriverName                   string
+	DSN                          string
+	Conn                         gorm.ConnPool
+	DisableDatetimePrecision     bool
+	DontSupportRenameColumn      bool
+	DontSupportColumnPrecision   bool
+	DontSupportEmptyDefaultValue bool
+	SkipInitializeWithVersion    bool
+	DefaultGranularity           int    // 1 granule = 8192 rows
+	DefaultCompression           string // default compression algorithm. LZ4 is lossless
+	DefaultIndexType             string // index stores extremes of the expression
+	DefaultTableEngineOpts       string
 }
 
 type Dialector struct {
