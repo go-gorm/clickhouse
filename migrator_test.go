@@ -3,6 +3,10 @@ package clickhouse_test
 import (
 	"testing"
 	"time"
+
+	clickhousego "github.com/ClickHouse/clickhouse-go/v2"
+	"gorm.io/driver/clickhouse"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -99,5 +103,45 @@ func TestMigrator_HasIndex(t *testing.T) {
 
 	if err := DB.Table("users").AutoMigrate(&UserWithIndex{}); err != nil {
 		t.Fatalf("no error should happen when auto migrate again")
+	}
+}
+
+func TestMigrator_DontSupportEmptyDefaultValue(t *testing.T) {
+	options, err := clickhousego.ParseDSN(dbDSN)
+	if err != nil {
+		t.Fatalf("Can not parse dsn, got error %v", err)
+	}
+	
+	DB, err := gorm.Open(clickhouse.New(clickhouse.Config{
+		Conn: clickhousego.OpenDB(options),
+		DontSupportEmptyDefaultValue: true,
+	}))
+	if err != nil {
+		t.Fatalf("failed to connect database, got error %v", err)
+	}
+
+	type MyTable struct {
+		MyField string
+	}
+
+	// Create the table with AutoMigrate
+	if err := DB.Table("mytable").AutoMigrate(&MyTable{}); err != nil {
+		t.Fatalf("no error should happen when auto migrate, but got %v", err)
+	}
+
+	// Replace every gorm raw SQL command with a function that appends the SQL string to a slice
+	sqlStrings := make([]string, 0)
+	if err := DB.Callback().Raw().Replace("gorm:raw", func(db *gorm.DB) {
+		sqlToExecute := db.Statement.SQL.String()
+		sqlStrings = append(sqlStrings, sqlToExecute)
+	}); err != nil {
+		t.Fatalf("no error should happen when registering a callback, but got %v", err)
+	}
+
+	if err := DB.Table("mytable").AutoMigrate(&MyTable{}); err != nil {
+		t.Fatalf("no error should happen when auto migrate, but got %v", err)
+	}
+	if len(sqlStrings) > 0 {
+		t.Fatalf("should not auto-migrate table if there have not been any changes to the schema")
 	}
 }
