@@ -195,9 +195,13 @@ func (m Migrator) HasTable(value interface{}) bool {
 func (m Migrator) AddColumn(value interface{}, field string) error {
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
 		if field := stmt.Schema.LookUpField(field); field != nil {
+			clusterOpts := ""
+			if clusterOption, ok := m.DB.Get("gorm:table_cluster_options"); ok {
+				clusterOpts = " " + fmt.Sprint(clusterOption) + " "
+			}
 			return m.DB.Exec(
-				"ALTER TABLE ? ADD COLUMN ? ?",
-				clause.Table{Name: stmt.Table}, clause.Column{Name: field.DBName},
+				"ALTER TABLE ? ? ADD COLUMN ? ?",
+				clause.Table{Name: stmt.Table}, clusterOpts, clause.Column{Name: field.DBName},
 				m.FullDataTypeOf(field),
 			).Error
 		}
@@ -210,9 +214,13 @@ func (m Migrator) DropColumn(value interface{}, name string) error {
 		if field := stmt.Schema.LookUpField(name); field != nil {
 			name = field.DBName
 		}
+		clusterOpts := ""
+		if clusterOption, ok := m.DB.Get("gorm:table_cluster_options"); ok {
+			clusterOpts = " " + fmt.Sprint(clusterOption) + " "
+		}
 		return m.DB.Exec(
-			"ALTER TABLE ? DROP COLUMN ?",
-			clause.Table{Name: stmt.Table}, clause.Column{Name: name},
+			"ALTER TABLE ? ? DROP COLUMN ?",
+			clause.Table{Name: stmt.Table}, clusterOpts, clause.Column{Name: name},
 		).Error
 	})
 }
@@ -220,9 +228,14 @@ func (m Migrator) DropColumn(value interface{}, name string) error {
 func (m Migrator) AlterColumn(value interface{}, field string) error {
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
 		if field := stmt.Schema.LookUpField(field); field != nil {
+			clusterOpts := ""
+			if clusterOption, ok := m.DB.Get("gorm:table_cluster_options"); ok {
+				clusterOpts = " " + fmt.Sprint(clusterOption) + " "
+			}
 			return m.DB.Exec(
-				"ALTER TABLE ? MODIFY COLUMN ? ?",
+				"ALTER TABLE ? ? MODIFY COLUMN ? ?",
 				clause.Table{Name: stmt.Table},
+				clusterOpts,
 				clause.Column{Name: field.DBName},
 				m.FullDataTypeOf(field),
 			).Error
@@ -246,9 +259,14 @@ func (m Migrator) RenameColumn(value interface{}, oldName, newName string) error
 				field = f
 			}
 			if field != nil {
+				clusterOpts := ""
+				if clusterOption, ok := m.DB.Get("gorm:table_cluster_options"); ok {
+					clusterOpts = " " + fmt.Sprint(clusterOption) + " "
+				}
 				return m.DB.Exec(
-					"ALTER TABLE ? RENAME COLUMN ? TO ?",
+					"ALTER TABLE ? ? RENAME COLUMN ? TO ?",
 					clause.Table{Name: stmt.Table},
+					clusterOpts,
 					clause.Column{Name: oldName},
 					clause.Column{Name: newName},
 				).Error
