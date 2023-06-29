@@ -202,7 +202,7 @@ func (m Migrator) AddColumn(value interface{}, field string) error {
 			sQL := fmt.Sprintf("ALTER TABLE ? %s ADD COLUMN ? ?", clusterOpts)
 			return m.DB.Exec(
 				sQL,
-				clause.Table{Name: stmt.Table}, clusterOpts, clause.Column{Name: field.DBName},
+				clause.Table{Name: stmt.Table}, clause.Column{Name: field.DBName},
 				m.FullDataTypeOf(field),
 			).Error
 		}
@@ -222,7 +222,7 @@ func (m Migrator) DropColumn(value interface{}, name string) error {
 		sQL := fmt.Sprintf("ALTER TABLE ? %s DROP COLUMN ?", clusterOpts)
 		return m.DB.Exec(
 			sQL,
-			clause.Table{Name: stmt.Table}, clusterOpts, clause.Column{Name: name},
+			clause.Table{Name: stmt.Table}, clause.Column{Name: name},
 		).Error
 	})
 }
@@ -238,7 +238,6 @@ func (m Migrator) AlterColumn(value interface{}, field string) error {
 			return m.DB.Exec(
 				sQL,
 				clause.Table{Name: stmt.Table},
-				clusterOpts,
 				clause.Column{Name: field.DBName},
 				m.FullDataTypeOf(field),
 			).Error
@@ -270,7 +269,6 @@ func (m Migrator) RenameColumn(value interface{}, oldName, newName string) error
 				return m.DB.Exec(
 					sQL,
 					clause.Table{Name: stmt.Table},
-					clusterOpts,
 					clause.Column{Name: oldName},
 					clause.Column{Name: newName},
 				).Error
