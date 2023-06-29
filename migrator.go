@@ -219,7 +219,7 @@ func (m Migrator) DropColumn(value interface{}, name string) error {
 		if clusterOption, ok := m.DB.Get("gorm:table_cluster_options"); ok {
 			clusterOpts = " " + fmt.Sprint(clusterOption) + " "
 		}
-		sQL := fmt.Sprintf("ALTER TABLE ? %s DROP COLUMN ? ?", clusterOpts)
+		sQL := fmt.Sprintf("ALTER TABLE ? %s DROP COLUMN ?", clusterOpts)
 		return m.DB.Exec(
 			sQL,
 			clause.Table{Name: stmt.Table}, clusterOpts, clause.Column{Name: name},
