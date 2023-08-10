@@ -9,5 +9,5 @@ require (
 	github.com/klauspost/compress v1.16.0 // indirect
 	go.opentelemetry.io/otel v1.14.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
-	gorm.io/gorm v1.24.6
+	gorm.io/gorm v1.25.3
 )
