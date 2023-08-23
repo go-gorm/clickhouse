@@ -19,6 +19,14 @@ func TestCreate(t *testing.T) {
 	}
 
 	tests.AssertEqual(t, result, user)
+
+	type partialUser struct {
+		Name string
+	}
+	var partialResult partialUser
+	if err := DB.Raw("select * from users where id = ?", user.ID).Scan(&partialResult).Error; err != nil {
+		t.Fatalf("failed to query partial, got error %v", err)
+	}
 }
 
 func TestBatchCreate(t *testing.T) {

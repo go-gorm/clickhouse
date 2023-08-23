@@ -14,7 +14,7 @@ type User struct {
 	Name      string
 	FirstName string
 	LastName  string
-	Age       int64
+	Age       int64 `gorm:"type:Nullable(Int64)"`
 	Active    bool
 	Salary    float32
 	CreatedAt time.Time
@@ -111,9 +111,9 @@ func TestMigrator_DontSupportEmptyDefaultValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Can not parse dsn, got error %v", err)
 	}
-	
+
 	DB, err := gorm.Open(clickhouse.New(clickhouse.Config{
-		Conn: clickhousego.OpenDB(options),
+		Conn:                         clickhousego.OpenDB(options),
 		DontSupportEmptyDefaultValue: true,
 	}))
 	if err != nil {
