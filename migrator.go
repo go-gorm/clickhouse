@@ -190,6 +190,12 @@ func (m Migrator) HasTable(value interface{}) bool {
 	return count > 0
 }
 
+func (m Migrator) GetTables() (tableList []string, err error) {
+	// table_type Enum8('BASE TABLE' = 1, 'VIEW' = 2, 'FOREIGN TABLE' = 3, 'LOCAL TEMPORARY' = 4, 'SYSTEM VIEW' = 5)
+	err = m.DB.Raw("SELECT TABLE_NAME FROM information_schema.tables where table_schema=? and table_type =1", m.CurrentDatabase()).Scan(&tableList).Error
+	return
+}
+
 // Columns
 
 func (m Migrator) AddColumn(value interface{}, field string) error {
@@ -504,14 +510,16 @@ sample input:
 
 CREATE TABLE my_database.my_foo_bar
 (
-    `id` UInt64,
-    `created_at` DateTime64(3),
-    `updated_at` DateTime64(3),
-    `deleted_at` DateTime64(3),
-    `foo` String,
-    `bar` String,
-    INDEX idx_my_foo_bar_deleted_at deleted_at TYPE minmax GRANULARITY 3,
-    INDEX my_fb_foo_bar (foo, bar) TYPE minmax GRANULARITY 3
+
+	`id` UInt64,
+	`created_at` DateTime64(3),
+	`updated_at` DateTime64(3),
+	`deleted_at` DateTime64(3),
+	`foo` String,
+	`bar` String,
+	INDEX idx_my_foo_bar_deleted_at deleted_at TYPE minmax GRANULARITY 3,
+	INDEX my_fb_foo_bar (foo, bar) TYPE minmax GRANULARITY 3
+
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(created_at)
