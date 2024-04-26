@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	_ "github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/hashicorp/go-version"
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
@@ -34,6 +34,7 @@ type Config struct {
 
 type Dialector struct {
 	*Config
+	options clickhouse.Options
 	Version string
 }
 
@@ -49,13 +50,14 @@ func (dialector Dialector) Name() string {
 	return "clickhouse"
 }
 
-func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
+func (dialector *Dialector) Initialize(db *gorm.DB) (err error) {
 	// register callbacks
 	ctx := context.Background()
 	callbacks.RegisterDefaultCallbacks(db, &callbacks.Config{
 		DeleteClauses: []string{"DELETE", "WHERE"},
 	})
-	db.Callback().Create().Replace("gorm:create", Create)
+	db.Callback().Create().Replace("gorm:create", dialector.Create)
+	db.Callback().Update().Replace("gorm:update", dialector.Update)
 
 	// assign option fields to default values
 	if dialector.DriverName == "" {
@@ -85,6 +87,12 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 		db.ConnPool, err = sql.Open(dialector.DriverName, dialector.DSN)
 		if err != nil {
 			return err
+		}
+	}
+
+	if dialector.DSN != "" {
+		if opts, err := clickhouse.ParseDSN(dialector.DSN); err == nil {
+			dialector.options = *opts
 		}
 	}
 
@@ -199,7 +207,7 @@ func (dialector Dialector) Migrator(db *gorm.DB) gorm.Migrator {
 		Migrator: migrator.Migrator{
 			Config: migrator.Config{
 				DB:        db,
-				Dialector: dialector,
+				Dialector: &dialector,
 			},
 		},
 		Dialector: dialector,

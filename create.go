@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func Create(db *gorm.DB) {
+func (dialector *Dialector) Create(db *gorm.DB) {
 	if db.Error == nil {
 		if db.Statement.Schema != nil && !db.Statement.Unscoped {
 			for _, c := range db.Statement.Schema.CreateClauses {

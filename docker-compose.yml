@@ -1,7 +1,7 @@
 version: "3"
 services:
     server:
-      image: clickhouse/clickhouse-server
+      image: yandex/clickhouse-server:latest
       environment:
         - CLICKHOUSE_DB=gorm
         - CLICKHOUSE_USER=gorm

@@ -12,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-const dbDSN = "clickhouse://gorm:gorm@localhost:9942/gorm?dial_timeout=10s&read_timeout=20s"
+const dbDSN = "clickhouse://gorm:gorm@127.0.0.1:9942/gorm?dial_timeout=10s&read_timeout=20s"
 
 func init() {
 	var (
