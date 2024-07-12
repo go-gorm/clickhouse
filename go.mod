@@ -7,7 +7,7 @@ toolchain go1.21.1
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.26.0
 	github.com/hashicorp/go-version v1.6.0
-	gorm.io/gorm v1.25.10
+	gorm.io/gorm v1.25.11
 )
 
 require (
@@ -28,5 +28,6 @@ require (
 	go.opentelemetry.io/otel v1.26.0 // indirect
 	go.opentelemetry.io/otel/trace v1.26.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
