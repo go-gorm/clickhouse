@@ -30,6 +30,8 @@ type Config struct {
 	DefaultCompression           string // default compression algorithm. LZ4 is lossless
 	DefaultIndexType             string // index stores extremes of the expression
 	DefaultTableEngineOpts       string
+
+	InformationSchemaTablesTableTypeString bool // information_schema.tables.table_type is String
 }
 
 type Dialector struct {
@@ -111,6 +113,11 @@ func (dialector *Dialector) Initialize(db *gorm.DB) (err error) {
 			versionNoPrecisionColumn, _ := version.NewConstraint("< 21.11")
 			if versionNoPrecisionColumn.Check(dbversion) {
 				dialector.DontSupportColumnPrecision = true
+			}
+
+			versionTableType, _ := version.NewConstraint(">= 23.9")
+			if versionTableType.Check(dbversion) {
+				dialector.Config.InformationSchemaTablesTableTypeString = true
 			}
 		}
 	}
