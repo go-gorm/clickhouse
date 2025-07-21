@@ -190,8 +190,25 @@ func (m Migrator) HasTable(value interface{}) bool {
 	return count > 0
 }
 
+// GetTables
+// clickhouse version 23.9 changelog
+// Made the views in schema information_schema more compatible with the equivalent views in MySQL
+// (i.e. modified and extended them) up to a point where Tableau Online is able to connect to ClickHouse.
+// More specifically:
+// 1. The type of field information_schema.tables.table_type changed from Enum8 to String.
+// 2. Added fields table_comment and table_collation to view information_schema.table.
+// 3. Added views information_schema.key_column_usage and referential_constraints.
+// 4. Replaced uppercase aliases in information_schema views with concrete uppercase columns.
+// https://github.com/ClickHouse/ClickHouse/pull/54773
+//
+// version < 23.9 table_type Enum8('BASE TABLE' = 1, 'VIEW' = 2, 'FOREIGN TABLE' = 3, 'LOCAL TEMPORARY' = 4, 'SYSTEM VIEW' = 5)
+// version >= 23.9 table_type String
 func (m Migrator) GetTables() (tableList []string, err error) {
-	// table_type Enum8('BASE TABLE' = 1, 'VIEW' = 2, 'FOREIGN TABLE' = 3, 'LOCAL TEMPORARY' = 4, 'SYSTEM VIEW' = 5)
+	if m.Dialector.Config.InformationSchemaTablesTableTypeString {
+		err = m.DB.Raw("SELECT TABLE_NAME FROM information_schema.tables where table_schema=? and table_type ='BASE TABLE'", m.CurrentDatabase()).Scan(&tableList).Error
+		return
+	}
+
 	err = m.DB.Raw("SELECT TABLE_NAME FROM information_schema.tables where table_schema=? and table_type =1", m.CurrentDatabase()).Scan(&tableList).Error
 	return
 }
