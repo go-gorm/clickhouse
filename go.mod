@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.30.0
-	github.com/hashicorp/go-version v1.6.0
+	github.com/hashicorp/go-version v1.9.0
 	gorm.io/gorm v1.30.0
 )
 
